@@ -4,10 +4,8 @@ name = "iam-codebase-indexer-service"
 main = "worker/src/index.js"
 compatibility_date = "2026-07-09"
 compatibility_flags = ["nodejs_compat"]
-workers_dev = true
-
-# No public product host — service-binding only from inneranimalmedia (IAM_CODEBASE_INDEXER).
-# Optional workers.dev URL for smoke: https://iam-codebase-indexer-service.<account>.workers.dev
+# Binding-only from inneranimalmedia (IAM_CODEBASE_INDEXER). No public workers.dev host.
+workers_dev = false
 
 # Static CompiledWasm — workerd precompiles at deploy (no runtime byte instantiate).
 [[rules]]
@@ -19,8 +17,8 @@ fallthrough = true
 ENVIRONMENT = "production"
 SERVICE_PRODUCT = "IAM-CODEBASE-INDEXER-SERVICE"
 
-# Optional shared secret (same as moviemode): set IAM_SERVICE_KEY on both workers.
-# [secrets] IAM_SERVICE_KEY
+# Required in prod: same IAM_SERVICE_KEY secret on this Worker + inneranimalmedia
+# (header X-IAM-Service-Key). Put via: npx wrangler secret put IAM_SERVICE_KEY -c wrangler.toml
 
 [observability]
 enabled = true

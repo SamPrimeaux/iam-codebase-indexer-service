@@ -18,7 +18,7 @@ service = "iam-codebase-indexer-service"
 
 Client: `src/core/codebase-indexer-service-client.js` → `POST /parse`.
 
-Optional shared secret on both workers: `IAM_SERVICE_KEY` (header `X-IAM-Service-Key`).
+**Required in production:** shared secret `IAM_SERVICE_KEY` on **both** this Worker and `inneranimalmedia` (header `X-IAM-Service-Key`). Binding: `IAM_CODEBASE_INDEXER` → this service.
 
 ## Layout
 

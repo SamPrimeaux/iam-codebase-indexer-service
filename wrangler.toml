@@ -1,0 +1,26 @@
+# IAM-CODEBASE-INDEXER-SERVICE
+# Cloudflare Worker name must be lowercase. Docs/tickets use IAM-CODEBASE-INDEXER-SERVICE.
+name = "iam-codebase-indexer-service"
+main = "worker/src/index.js"
+compatibility_date = "2026-07-09"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# No public product host — service-binding only from inneranimalmedia (IAM_CODEBASE_INDEXER).
+# Optional workers.dev URL for smoke: https://iam-codebase-indexer-service.<account>.workers.dev
+
+# Static CompiledWasm — workerd precompiles at deploy (no runtime byte instantiate).
+[[rules]]
+type = "CompiledWasm"
+globs = ["**/*.wasm"]
+fallthrough = true
+
+[vars]
+ENVIRONMENT = "production"
+SERVICE_PRODUCT = "IAM-CODEBASE-INDEXER-SERVICE"
+
+# Optional shared secret (same as moviemode): set IAM_SERVICE_KEY on both workers.
+# [secrets] IAM_SERVICE_KEY
+
+[observability]
+enabled = true

@@ -29,10 +29,14 @@ function json(body, status = 200) {
  * @param {any} env
  */
 function assertServiceKey(request, env) {
-  const expected = env?.IAM_SERVICE_KEY != null ? String(env.IAM_SERVICE_KEY).trim() : '';
-  if (!expected) return;
+  // AGENTSAM_BRIDGE_KEY supersedes IAM_SERVICE_KEY as of 2026-08. Keep both
+  // accepted until the bridge key is confirmed provisioned on this Worker
+  // (wrangler secret put AGENTSAM_BRIDGE_KEY --name iam-codebase-indexer-service).
+  const bridgeKey = env?.AGENTSAM_BRIDGE_KEY != null ? String(env.AGENTSAM_BRIDGE_KEY).trim() : '';
+  const legacyKey = env?.IAM_SERVICE_KEY != null ? String(env.IAM_SERVICE_KEY).trim() : '';
+  if (!bridgeKey && !legacyKey) return;
   const got = request.headers.get('X-IAM-Service-Key') || '';
-  if (got !== expected) {
+  if (got !== bridgeKey && got !== legacyKey) {
     const err = new Error('unauthorized');
     err.status = 401;
     throw err;

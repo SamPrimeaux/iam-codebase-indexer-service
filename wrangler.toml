@@ -4,8 +4,9 @@ name = "iam-codebase-indexer-service"
 main = "worker/src/index.js"
 compatibility_date = "2026-07-09"
 compatibility_flags = ["nodejs_compat"]
-# Binding-only from inneranimalmedia (IAM_CODEBASE_INDEXER). No public workers.dev host.
-workers_dev = false
+# Optional public workers.dev for /health · /poll (no auth) and /push warm (bridge auth).
+# Production parse still uses IAM_CODEBASE_INDEXER service binding from inneranimalmedia.
+workers_dev = true
 
 # Static CompiledWasm — workerd precompiles at deploy (no runtime byte instantiate).
 [[rules]]
@@ -16,6 +17,11 @@ fallthrough = true
 [vars]
 ENVIRONMENT = "production"
 SERVICE_PRODUCT = "IAM-CODEBASE-INDEXER-SERVICE"
+PUBLIC_WORKERS_DEV_URL = "https://iam-codebase-indexer-service.meauxbility.workers.dev"
+
+# Self-warm every 15m so main Worker need not call /warm on each index batch.
+[triggers]
+crons = ["*/15 * * * *"]
 
 # Required in prod: same AGENTSAM_BRIDGE_KEY secret on this Worker + inneranimalmedia
 # (Authorization: Bearer or X-IAM-Service-Key). Put via: npx wrangler secret put AGENTSAM_BRIDGE_KEY -c wrangler.toml

@@ -2,6 +2,9 @@
  * IAM-CODEBASE-INDEXER-SERVICE
  * Sibling Worker: structural tree-sitter parse only (static CompiledWasm).
  * Main Worker binds as IAM_CODEBASE_INDEXER — queue/crawl/embed/activate stay on main.
+ *
+ * Public workers.dev (optional): /health · /poll (no auth) · /push · /warm (bridge auth).
+ * Cron scheduled() self-warms so inneranimalmedia need not call /warm per index batch.
  */
 
 import { parseStructuralForFile } from './codebase-structural-parse.js';
@@ -35,6 +38,51 @@ function requireBridgeAuth(request, env) {
     err.status = 401;
     throw err;
   }
+}
+
+/**
+ * @param {any} env
+ */
+function publicBaseUrl(env) {
+  const fromVar = env?.PUBLIC_WORKERS_DEV_URL != null ? String(env.PUBLIC_WORKERS_DEV_URL).trim() : '';
+  if (fromVar) return fromVar.replace(/\/$/, '');
+  return null;
+}
+
+/**
+ * Liveness — no auth (uptime monitors, CF health checks).
+ * @param {Request} request
+ * @param {any} env
+ */
+function handleHealth(request, env) {
+  const url = new URL(request.url);
+  const deep = url.searchParams.get('deep') === '1';
+  if (deep) {
+    requireBridgeAuth(request, env);
+  }
+  return json({
+    ok: true,
+    service: SERVICE_NAME,
+    product: 'IAM-CODEBASE-INDEXER-SERVICE',
+    role: 'structural_parse',
+    wasm: 'CompiledWasm_static_import',
+    public_url: publicBaseUrl(env),
+    endpoints: {
+      health: '/health',
+      poll: '/poll',
+      push: '/push',
+      warm: '/warm',
+      parse: '/parse',
+    },
+    deep,
+  });
+}
+
+/**
+ * Minimal pull probe — tiny payload for external poll monitors.
+ */
+function handlePoll() {
+  return json({ ok: true, service: SERVICE_NAME, mode: 'poll' });
 }
 
 /**
@@ -100,17 +148,31 @@ async function handleParse(request, env) {
 }
 
 /**
- * @param {any} env
+ * @param {{ source?: string }} [opts]
  */
-async function handleWarm(env) {
+async function handleWarm(opts = {}) {
   const t0 = Date.now();
   await ensureTreeSitterRuntime();
   return json({
     ok: true,
     service: SERVICE_NAME,
     warm: true,
+    source: opts.source || 'http',
     elapsed_ms: Date.now() - t0,
   });
+}
+
+/**
+ * Push warm — cron / external webhook hits workers.dev instead of main Worker binding.
+ * @param {Request} request
+ * @param {any} env
+ */
+async function handlePush(request, env) {
+  if (request.method !== 'POST') {
+    return json({ ok: false, error: 'method_not_allowed' }, 405);
+  }
+  requireBridgeAuth(request, env);
+  return handleWarm({ source: 'push' });
 }
 
 export default {
@@ -129,13 +191,33 @@ export default {
 
     try {
       if (path === '/health' || path === '/api/health') {
-        return json({
-          ok: true,
-          service: SERVICE_NAME,
-          product: 'IAM-CODEBASE-INDEXER-SERVICE',
-          role: 'structural_parse',
-          wasm: 'CompiledWasm_static_import',
-        });
+        if (method !== 'GET' && method !== 'HEAD') {
+          return json({ ok: false, error: 'method_not_allowed' }, 405);
+        }
+        if (method === 'HEAD') {
+          return new Response(null, {
+            status: 200,
+            headers: { 'x-iam-service': SERVICE_NAME, 'cache-control': 'no-store' },
+          });
+        }
+        return handleHealth(request, env);
+      }
+
+      if (path === '/poll' || path === '/api/poll') {
+        if (method !== 'GET' && method !== 'HEAD') {
+          return json({ ok: false, error: 'method_not_allowed' }, 405);
+        }
+        if (method === 'HEAD') {
+          return new Response(null, {
+            status: 200,
+            headers: { 'x-iam-service': SERVICE_NAME, 'cache-control': 'no-store' },
+          });
+        }
+        return handlePoll();
+      }
+
+      if (path === '/push' || path === '/api/push') {
+        return await handlePush(request, env);
       }
 
       if (path === '/warm' || path === '/api/warm') {
@@ -143,7 +225,7 @@ export default {
           return json({ ok: false, error: 'method_not_allowed' }, 405);
         }
         requireBridgeAuth(request, env);
-        return await handleWarm(env);
+        return await handleWarm({ source: 'warm' });
       }
 
       if (path === '/parse' || path === '/api/parse') {
@@ -156,5 +238,23 @@ export default {
       const message = err instanceof Error ? err.message : String(err || 'error');
       return json({ ok: false, error: message.slice(0, 300), service: SERVICE_NAME }, status);
     }
+  },
+
+  /**
+   * Self-warm on cron — keeps WASM hot without main Worker batch warm.
+   * @param {ScheduledEvent} _event
+   * @param {any} env
+   * @param {ExecutionContext} ctx
+   */
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(
+      ensureTreeSitterRuntime()
+        .then(() => {
+          console.log('[indexer] scheduled_warm_ok', { service: SERVICE_NAME });
+        })
+        .catch((err) => {
+          console.warn('[indexer] scheduled_warm_failed', err?.message || err);
+        }),
+    );
   },
 };

@@ -39,11 +39,18 @@ iam-codebase-indexer-service/
 
 ## API
 
-| Path | Method | Body | Result |
+| Path | Method | Auth | Result |
 |------|--------|------|--------|
-| `/health` | GET | — | liveness |
-| `/warm` | GET/POST | — | pre-init Parser |
-| `/parse` | POST | `{ content, file, context }` | `{ symbols, call_sites, import_bindings }` |
+| `/health` | GET/HEAD | none (`?deep=1` needs bridge) | liveness + endpoint map |
+| `/poll` | GET/HEAD | none | minimal uptime probe |
+| `/push` | POST | `AGENTSAM_BRIDGE_KEY` | warm WASM (cron/webhook target) |
+| `/warm` | GET/POST | bridge | pre-init Parser |
+| `/parse` | POST | bridge | `{ symbols, call_sites, import_bindings }` |
+
+Public host (optional): `https://iam-codebase-indexer-service.meauxbility.workers.dev`
+
+Cron `*/15 * * * *` self-warms via `scheduled()` — main Worker should set
+`CODEBASE_INDEXER_EXTERNAL_WARM=1` to skip per-batch warm on the binding.
 
 `context` requires `workspace_id`, `repo_full_name`, `revision_sha`, `run_id`.
 

@@ -3,8 +3,7 @@
  * Sibling Worker: structural tree-sitter parse only (static CompiledWasm).
  * Main Worker binds as IAM_CODEBASE_INDEXER — queue/crawl/embed/activate stay on main.
  *
- * Public workers.dev (optional): /health · /poll (no auth) · /push · /warm (bridge auth).
- * Cron scheduled() self-warms so inneranimalmedia need not call /warm per index batch.
+ * Public workers.dev disabled — routes reachable only via IAM_CODEBASE_INDEXER binding.
  */
 
 import { parseStructuralForFile } from './codebase-structural-parse.js';

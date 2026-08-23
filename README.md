@@ -16,9 +16,11 @@ binding = "IAM_CODEBASE_INDEXER"
 service = "iam-codebase-indexer-service"
 ```
 
-Client: `src/core/codebase-indexer-service-client.js` → `POST /parse`.
+Client: `backend/agentsam/codebase/indexer-client.js` (main repo) → binding `POST /parse`.
 
-**Required in production:** shared secret `AGENTSAM_BRIDGE_KEY` on **both** this Worker and `inneranimalmedia` (`Authorization: Bearer` or `X-IAM-Service-Key`). Binding: `IAM_CODEBASE_INDEXER` → this service.
+**Auth:** `AGENTSAM_BRIDGE_KEY` on **both** Workers — used on the **service binding** path only (not a public URL).
+
+**No public host** — `workers_dev = false`. Cron `scheduled()` self-warms WASM every 15m.
 
 ## Layout
 
@@ -37,20 +39,15 @@ iam-codebase-indexer-service/
     └── sync-from-iam.sh                # pull latest from monorepo services/
 ```
 
-## API
+## API (service binding only)
 
 | Path | Method | Auth | Result |
 |------|--------|------|--------|
-| `/health` | GET/HEAD | none (`?deep=1` needs bridge) | liveness + endpoint map |
-| `/poll` | GET/HEAD | none | minimal uptime probe |
-| `/push` | POST | `AGENTSAM_BRIDGE_KEY` | warm WASM (cron/webhook target) |
+| `/health` | GET/HEAD | none | liveness |
 | `/warm` | GET/POST | bridge | pre-init Parser |
 | `/parse` | POST | bridge | `{ symbols, call_sites, import_bindings }` |
 
-Public host (optional): `https://iam-codebase-indexer-service.meauxbility.workers.dev`
-
-Cron `*/15 * * * *` self-warms via `scheduled()` — main Worker should set
-`CODEBASE_INDEXER_EXTERNAL_WARM=1` to skip per-batch warm on the binding.
+`/poll` and `/push` remain for binding callers; not exposed on the public internet.
 
 `context` requires `workspace_id`, `repo_full_name`, `revision_sha`, `run_id`.
 

@@ -96,6 +96,10 @@ export async function materializeStructuralSymbols(
       context.workspace_id,
       repoFullName,
       context.revision_sha,
+      // Must match main worker: generation in id hash so force rebuilds don't PK-collide.
+      context.index_generation_id != null && String(context.index_generation_id).trim()
+        ? String(context.index_generation_id).trim()
+        : '',
       file.path,
       fileHash,
       match.node_type,

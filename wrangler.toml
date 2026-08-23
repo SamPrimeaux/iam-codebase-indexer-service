@@ -17,8 +17,8 @@ fallthrough = true
 ENVIRONMENT = "production"
 SERVICE_PRODUCT = "IAM-CODEBASE-INDEXER-SERVICE"
 
-# Required in prod: same IAM_SERVICE_KEY secret on this Worker + inneranimalmedia
-# (header X-IAM-Service-Key). Put via: npx wrangler secret put IAM_SERVICE_KEY -c wrangler.toml
+# Required in prod: same AGENTSAM_BRIDGE_KEY secret on this Worker + inneranimalmedia
+# (Authorization: Bearer or X-IAM-Service-Key). Put via: npx wrangler secret put AGENTSAM_BRIDGE_KEY -c wrangler.toml
 
 [observability]
 enabled = true

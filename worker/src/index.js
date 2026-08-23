@@ -6,6 +6,7 @@
 
 import { parseStructuralForFile } from './codebase-structural-parse.js';
 import { ensureTreeSitterRuntime } from './codebase-treesitter-runtime.js';
+import { verifyBridgeKey } from './bridge-key-auth.js';
 
 const SERVICE_NAME = 'iam-codebase-indexer-service';
 
@@ -28,11 +29,8 @@ function json(body, status = 200) {
  * @param {Request} request
  * @param {any} env
  */
-function assertServiceKey(request, env) {
-  const expected = env?.IAM_SERVICE_KEY != null ? String(env.IAM_SERVICE_KEY).trim() : '';
-  if (!expected) return;
-  const got = request.headers.get('X-IAM-Service-Key') || '';
-  if (got !== expected) {
+function requireBridgeAuth(request, env) {
+  if (!verifyBridgeKey(request, env)) {
     const err = new Error('unauthorized');
     err.status = 401;
     throw err;
@@ -47,7 +45,7 @@ async function handleParse(request, env) {
   if (request.method !== 'POST') {
     return json({ ok: false, error: 'method_not_allowed' }, 405);
   }
-  assertServiceKey(request, env);
+  requireBridgeAuth(request, env);
 
   let body;
   try {
@@ -144,7 +142,7 @@ export default {
         if (method !== 'POST' && method !== 'GET') {
           return json({ ok: false, error: 'method_not_allowed' }, 405);
         }
-        assertServiceKey(request, env);
+        requireBridgeAuth(request, env);
         return await handleWarm(env);
       }
 

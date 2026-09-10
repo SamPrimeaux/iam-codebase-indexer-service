@@ -49,7 +49,7 @@ iam-codebase-indexer-service/
 
 `/poll` and `/push` remain for binding callers; not exposed on the public internet.
 
-`context` requires `workspace_id`, `repo_full_name`, `revision_sha`, `run_id`.
+`context` requires `account_id`, `repository_id`, `repo_full_name`, `revision_sha`, `run_id`. `index_generation_id` is carried when available. Workspace identity is not part of the code-index ownership contract.
 
 ## Deploy
 

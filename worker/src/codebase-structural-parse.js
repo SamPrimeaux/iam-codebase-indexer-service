@@ -73,7 +73,7 @@ function requireGithubRepoFullName(context) {
  * Materialize raw matches into D1-shaped symbol rows.
  * @param {Array<object>} rawSymbols
  * @param {object} file
- * @param {{ workspace_id: string, repo_full_name: string, revision_sha: string, run_id: string }} context
+ * @param {{ account_id: string, repository_id: string, repo_full_name: string, revision_sha: string, run_id: string }} context
  * @param {string} language
  * @param {string} parserId
  * @param {string} structuralQuality

@@ -113,7 +113,8 @@ export async function materializeStructuralSymbols(
     const id = `node_${(await sha256Hex(identity)).slice(0, 32)}`;
     symbols.push({
       id,
-      workspace_id: context.workspace_id,
+      account_id: accountId,
+      repository_id: repositoryId,
       // D1/PG code-index scope key — GitHub owner/name only.
       repo_full_name: repoFullName,
       revision_sha: context.revision_sha,

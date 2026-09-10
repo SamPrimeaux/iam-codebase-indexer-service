@@ -35,8 +35,8 @@ iam-codebase-indexer-service/
 │   ├── web-tree-sitter.js
 │   └── wasm/*.wasm
 └── scripts/
-    ├── sync-wasm-from-iam.sh
-    └── sync-from-iam.sh                # pull latest from monorepo services/
+    ├── sync-wasm-from-iam.sh           # intentional vendor/WASM refresh only
+    └── sync-from-iam.sh                # retired guard; service repo is runtime authority
 ```
 
 ## API (service binding only)
@@ -49,7 +49,7 @@ iam-codebase-indexer-service/
 
 `/poll` and `/push` remain for binding callers; not exposed on the public internet.
 
-`context` requires `workspace_id`, `repo_full_name`, `revision_sha`, `run_id`.
+`context` requires `account_id`, `repository_id`, `repo_full_name`, `revision_sha`, `run_id`. `index_generation_id` is carried when available. Workspace identity is not part of the code-index ownership contract.
 
 ## Deploy
 
@@ -63,12 +63,9 @@ npx wrangler deploy -c wrangler.toml   # always -c wrangler.toml
 
 Then deploy main (`deploy:fast` / `deploy:full` on Mac) so the binding is live.
 
-## Sync from IAM monorepo
+## Runtime ownership
 
-```bash
-IAM_ROOT=/path/to/inneranimalmedia npm run sync
-# or: bash scripts/sync-from-iam.sh
-```
+This repository is the runtime authority for the standalone parser Worker. `inneranimalmedia/backend/agentsam/codebase/indexer-client.js` owns the caller/schema contract. The old full-service `sync-from-iam` path is retired because the monorepo no longer contains a service copy to rsync.
 
 ## Sync WASM only
 

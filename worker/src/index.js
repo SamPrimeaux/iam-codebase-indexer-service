@@ -107,12 +107,18 @@ async function handleParse(request, env) {
   }
   const file = body?.file && typeof body.file === 'object' ? body.file : {};
   const context = body?.context && typeof body.context === 'object' ? body.context : {};
-  if (!context.workspace_id || !context.repo_full_name || !context.revision_sha || !context.run_id) {
+  if (
+    !context.account_id ||
+    !context.repository_id ||
+    !context.repo_full_name ||
+    !context.revision_sha ||
+    !context.run_id
+  ) {
     return json(
       {
         ok: false,
         error: 'context_required',
-        need: ['workspace_id', 'repo_full_name', 'revision_sha', 'run_id'],
+        need: ['account_id', 'repository_id', 'repo_full_name', 'revision_sha', 'run_id'],
       },
       400,
     );

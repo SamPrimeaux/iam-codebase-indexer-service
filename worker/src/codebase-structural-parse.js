@@ -73,7 +73,7 @@ function requireGithubRepoFullName(context) {
  * Materialize raw matches into D1-shaped symbol rows.
  * @param {Array<object>} rawSymbols
  * @param {object} file
- * @param {{ workspace_id: string, repo_full_name: string, revision_sha: string, run_id: string }} context
+ * @param {{ account_id: string, repository_id: string, repo_full_name: string, revision_sha: string, run_id: string }} context
  * @param {string} language
  * @param {string} parserId
  * @param {string} structuralQuality
@@ -89,11 +89,15 @@ export async function materializeStructuralSymbols(
   fileHash,
 ) {
   const repoFullName = requireGithubRepoFullName(context);
+  const accountId = String(context?.account_id || '').trim();
+  const repositoryId = String(context?.repository_id || '').trim();
+  if (!accountId || !repositoryId) throw new Error('account_repository_required');
   const symbols = [];
   for (const match of rawSymbols || []) {
     if (!match?.node_name || !match?.node_type) continue;
     const identity = [
-      context.workspace_id,
+      accountId,
+      repositoryId,
       repoFullName,
       context.revision_sha,
       // Must match main worker: generation in id hash so force rebuilds don't PK-collide.
@@ -109,7 +113,8 @@ export async function materializeStructuralSymbols(
     const id = `node_${(await sha256Hex(identity)).slice(0, 32)}`;
     symbols.push({
       id,
-      workspace_id: context.workspace_id,
+      account_id: accountId,
+      repository_id: repositoryId,
       // D1/PG code-index scope key — GitHub owner/name only.
       repo_full_name: repoFullName,
       revision_sha: context.revision_sha,
@@ -141,7 +146,7 @@ export async function materializeStructuralSymbols(
 /**
  * @param {string} content
  * @param {{ path: string, language?: string, git_blob_sha?: string|null, classification?: string, parser_id?: string|null }} file
- * @param {{ workspace_id: string, repo_full_name: string, revision_sha: string, run_id: string, index_generation_id?: string|null, file_hash?: string, parser_id?: string, env?: any }} context
+ * @param {{ account_id: string, repository_id: string, repo_full_name: string, revision_sha: string, run_id: string, index_generation_id?: string|null, file_hash?: string, parser_id?: string, env?: any }} context
  *   `repo_full_name` = GitHub owner/name. Not a local checkout path.
  */
 export async function parseStructuralForFile(content, file, context) {

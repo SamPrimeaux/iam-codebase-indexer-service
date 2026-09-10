@@ -1,20 +1,14 @@
 #!/usr/bin/env bash
-# Sync IAM-CODEBASE-INDEXER-SERVICE from inneranimalmedia monorepo into this product repo.
+# Retired: the standalone iam-codebase-indexer-service repo is the runtime authority.
+# inneranimalmedia owns the caller/schema contract and no longer contains
+# services/iam-codebase-indexer-service to rsync from.
 set -euo pipefail
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-IAM_ROOT="${IAM_ROOT:-$HOME/inneranimalmedia}"
-SRC="$IAM_ROOT/services/iam-codebase-indexer-service"
+cat >&2 <<'EOF'
+sync-from-iam is retired.
 
-if [[ ! -f "$SRC/wrangler.toml" ]]; then
-  echo "sync-from-iam: missing $SRC/wrangler.toml (set IAM_ROOT=…)" >&2
-  exit 1
-fi
+Runtime authority: SamPrimeaux/iam-codebase-indexer-service
+Caller/schema contract: SamPrimeaux/inneranimalmedia backend/agentsam/codebase/indexer-client.js
 
-rsync -a \
-  --exclude node_modules \
-  --exclude .wrangler \
-  --exclude .dev.vars \
-  --exclude .git \
-  "$SRC/" "$ROOT/"
-
-echo "sync-from-iam: ok $SRC → $ROOT"
+Use `npm run sync:wasm` only when intentionally refreshing vendored tree-sitter assets.
+EOF
+exit 2

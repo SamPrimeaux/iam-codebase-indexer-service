@@ -5,7 +5,8 @@
   "description": "IAM-CODEBASE-INDEXER-SERVICE — structural tree-sitter parse Worker (static CompiledWasm)",
   "type": "module",
   "scripts": {
-    "check": "node --check worker/src/index.js && node --check worker/src/bridge-key-auth.js && node --check worker/src/codebase-treesitter-runtime.js && node --check worker/src/codebase-treesitter-parse.js && node --check worker/src/codebase-structural-parse.js",
+    "check": "node --check worker/src/index.js && node --check worker/src/bridge-key-auth.js && node --check worker/src/codebase-treesitter-runtime.js && node --check worker/src/codebase-treesitter-parse.js && node --check worker/src/codebase-structural-parse.js && node --test tests/*.test.mjs",
+    "test": "node --test tests/*.test.mjs",
     "sync": "bash scripts/sync-from-iam.sh",
     "sync:wasm": "bash scripts/sync-wasm-from-iam.sh",
     "deploy": "npx wrangler deploy -c wrangler.toml",

@@ -89,11 +89,15 @@ export async function materializeStructuralSymbols(
   fileHash,
 ) {
   const repoFullName = requireGithubRepoFullName(context);
+  const accountId = String(context?.account_id || '').trim();
+  const repositoryId = String(context?.repository_id || '').trim();
+  if (!accountId || !repositoryId) throw new Error('account_repository_required');
   const symbols = [];
   for (const match of rawSymbols || []) {
     if (!match?.node_name || !match?.node_type) continue;
     const identity = [
-      context.workspace_id,
+      accountId,
+      repositoryId,
       repoFullName,
       context.revision_sha,
       // Must match main worker: generation in id hash so force rebuilds don't PK-collide.

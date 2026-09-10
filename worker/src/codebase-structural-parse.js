@@ -146,7 +146,7 @@ export async function materializeStructuralSymbols(
 /**
  * @param {string} content
  * @param {{ path: string, language?: string, git_blob_sha?: string|null, classification?: string, parser_id?: string|null }} file
- * @param {{ workspace_id: string, repo_full_name: string, revision_sha: string, run_id: string, index_generation_id?: string|null, file_hash?: string, parser_id?: string, env?: any }} context
+ * @param {{ account_id: string, repository_id: string, repo_full_name: string, revision_sha: string, run_id: string, index_generation_id?: string|null, file_hash?: string, parser_id?: string, env?: any }} context
  *   `repo_full_name` = GitHub owner/name. Not a local checkout path.
  */
 export async function parseStructuralForFile(content, file, context) {

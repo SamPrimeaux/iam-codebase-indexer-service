@@ -35,8 +35,8 @@ iam-codebase-indexer-service/
 │   ├── web-tree-sitter.js
 │   └── wasm/*.wasm
 └── scripts/
-    ├── sync-wasm-from-iam.sh
-    └── sync-from-iam.sh                # pull latest from monorepo services/
+    ├── sync-wasm-from-iam.sh           # intentional vendor/WASM refresh only
+    └── sync-from-iam.sh                # retired guard; service repo is runtime authority
 ```
 
 ## API (service binding only)
